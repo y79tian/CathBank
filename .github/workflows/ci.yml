@@ -22,7 +22,7 @@ jobs:
           POSTGRES_PASSWORD: secret
           POSTGRES_IMAGE: simple_bank
         ports:
-          - 5432:5432
+          - 3001:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
