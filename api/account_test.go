@@ -17,9 +17,11 @@ import (
 	"github.com/techschool/simplebank/util"
 )
 
+
 func TestGetAccountAPI(t *testing.T) {
 	account := randomAccount()
 
+	// []struct{} => list of anonymous class
 	testCases := []struct {
 		name string
 		accountID int64
@@ -69,25 +71,29 @@ func TestGetAccountAPI(t *testing.T) {
 		},
 	}
 
+	//! NOTE:  每一次我新开一个store 并在store里面模拟一个stub，stub 实际上是模拟一个database的反馈
+	//! return的东西由上面设计stub的时候决定
 	for i := range testCases {
 		tc := testCases[i]
 		t.Run(tc.name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 		
+			// 这里的store是mock的 不是main的那个sqlstore
 			store := mockdb.NewMockStore(ctrl)
 			// build stub
 			tc.buildStubs(store)
 		
 			// start test server and send request
 			server := NewServer(store)
-			recorder := httptest.NewRecorder()
+			recorder := httptest.NewRecorder() // record the response of the HTTP request
 		
-			url := fmt.Sprintf("/accounts/%d", tc.accountID)
+			url := fmt.Sprintf("/accounts/%d", tc.accountID) // func Sprintf(format string, a ...any) string
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 		
-			server.router.ServeHTTP(recorder, request)
+			server.router.ServeHTTP(recorder, request) // send the response to http server, and record the resp to record
+			// check response from recorder
 			tc.checkResponse(t, recorder)
 		})
 	}
